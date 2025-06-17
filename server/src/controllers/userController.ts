@@ -1,4 +1,4 @@
-import User from "../models/userModel";
+import User from "../models/userModel.js";
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -13,11 +13,13 @@ dotenv.config();
   try {
     // Check if all fields are provided
     if (!username || !password || !email) {
-        return res.status(400).json({ message: "All fields are required" });
-        }
+        res.status(400).json({ message: "All fields are required" });
+        return;
+    }
     const user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: "User already exists" });
+      res.status(400).json({ message: "User already exists" });
+      return;
     }
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -30,7 +32,7 @@ dotenv.config();
     });
     await newUser.save();
     // Generate a JWT token
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET as string, {
       expiresIn: "1h",
     });
 
@@ -55,23 +57,26 @@ const loginUser = async (req: Request, res: Response) => {
   try {
     // Check if all fields are provided
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      res.status(400).json({ message: "All fields are required" });
+      return;
     }
 
     // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      res.status(400).json({ message: "Invalid email or password" });
+      return;
     }
 
     // Compare the password with the hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      res.status(400).json({ message: "Invalid email or password" });
+      return;
     }
 
     // Generate a JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
       expiresIn: "1h",
     });
 
@@ -91,13 +96,15 @@ const loginUser = async (req: Request, res: Response) => {
   }
 };  
 
-const logoutUser = async (req: Request, res: Response) => {
+const logoutUser = (req: Request, res: Response) => {
   try {
     // Invalidate the token by not sending it back to the client
     res.status(200).json({ message: "User logged out successfully", success: true });
+    return;
   } catch (error) {
     console.error("Error logging out user:", error);
     res.status(500).json({ message: "Internal server error", success: false });
+    return;
   }
 };
 

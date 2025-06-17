@@ -2,14 +2,23 @@ import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import User from '../models/userModel';
+import User from '../models/userModel.js';
 dotenv.config();
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized access' });
+    res.status(401).json({ message: 'Unauthorized access' });
+    return;
   }
 
   try {
@@ -17,14 +26,16 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
     const user = await User.findById((decoded as any).id);
 
     if (!user) {
-      return res.status(401).json({ message: 'Unauthorized access' });
+      res.status(401).json({ message: 'Unauthorized access' });
+      return;
     }   
     // Attach user to request object
     req.user = user;
     next();
   } catch (error) { 
     console.error('Authentication error:', error);
-    return res.status(401).json({ message: 'Unauthorized access' });
+    res.status(401).json({ message: 'Unauthorized access' });
+    return;
   }
 }
 export default authMiddleware;

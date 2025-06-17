@@ -2,10 +2,10 @@ import express from 'express';
 
 import cookieparser from 'cookie-parser';
 
-import connectDB from './config/db.config';
+import connectDB from './config/db.config.js';
 import cors from 'cors';
 
-import userRoutes from './routes/userRoutes';
+import userRoutes from './routes/userRoutes.js';
 
 
 
